@@ -30,6 +30,10 @@ async def get_session():
     yield session
 
 async def init_db():
+  from app.models.user import SocialUser
+
   async with engine.begin() as conn:
     await conn.run_sync(SQLModel.metadata.create_all)
+  
+  print("✅ DB 테이블 생성 완료")
 

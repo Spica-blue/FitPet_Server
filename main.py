@@ -1,43 +1,52 @@
-from fastapi import FastAPI, Depends, HTTPException
-from sqlalchemy.ext.asyncio import AsyncSession
-from fastapi.encoders import jsonable_encoder
-from passlib.context import CryptContext
-from sqlmodel import select
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.requests import Request
+from fastapi.responses import JSONResponse
+from fastapi.exceptions import RequestValidationError
+from fastapi import status
+from contextlib import asynccontextmanager
 
-from db.db import get_session, init_db
-from schemas import RegisterRequest
-from model.models import User
+from app.api.router import router
+from app.core.config import settings
+from app.db.db import init_db
 
-app = FastAPI()
-
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
-@app.on_event("startup")
-async def on_startup():
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+  print("🚀 앱 시작됨: DB 초기화 중...")
   await init_db()
+  print("✅ DB 초기화 완료!")
+  yield
+  print("👋 앱 종료됨")
 
-@app.post("/register")
-async def register_user(data: RegisterRequest, session: AsyncSession = Depends(get_session)):
-  # 이메일 중복 확인
-  result = await session.execute(
-    select(User).where(User.email == data.email)
+def create_app() -> FastAPI:
+  app = FastAPI(
+    title=settings.PROJECT_NAME,
+    description="FitPet 관리 API 서버",
+    docs_url="/docs",
+    redoc_url="/redoc",
+    lifespan=lifespan
   )
-  existing = result.scalars().first()
-  if existing:
-    raise HTTPException(status_code=400, detail="이미 등록된 이메일입니다")
-  
-  user = User(
-    name=data.name,
-    email=data.email,
-    password=pwd_context.hash(data.password),
+
+  app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
   )
-  
-  session.add(user)
-  await session.commit()
-  await session.refresh(user)
 
-  user_dict = jsonable_encoder(user)
-  user_dict.pop("password")
-  return user_dict
-  
+  app.include_router(router, prefix="/api")
 
+  return app
+
+app = create_app()
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+  print("❌ 요청 검증 에러 발생!")
+  print("요청 바디:", await request.body())
+  print("에러 상세:", exc.errors())
+  return JSONResponse(
+      status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+      content={"detail": exc.errors()},
+  )
