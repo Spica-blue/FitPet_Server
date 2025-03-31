@@ -33,7 +33,8 @@ async def init_db():
   from app.models.user import SocialUser
 
   async with engine.begin() as conn:
-    await conn.run_sync(SQLModel.metadata.create_all)
+    # await conn.run_sync(SQLModel.metadata.create_all)
+    pass
   
   print("✅ DB 테이블 생성 완료")
 

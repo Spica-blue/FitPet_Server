@@ -2,7 +2,7 @@ from pydantic import BaseModel, EmailStr
 from typing import Optional
 
 class SocialUserRequest(BaseModel):
-  id: str
+  # id: str
   login_type: str
   nickname: Optional[str] = None
   email: Optional[str] = None

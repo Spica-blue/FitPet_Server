@@ -18,7 +18,9 @@ class BaseService(Generic[ModelType]):
     return result.scalars().all()
 
   async def create(self, obj_in: dict) -> ModelType:
-    obj = self.model(**obj_in)
+    # created_at, last_login_at 같은 필드는 None이면 제외
+    obj_filtered = {k: v for k, v in obj_in.items() if v is not None}
+    obj = self.model(**obj_filtered)
     self.db.add(obj)
     await self.db.commit()
     await self.db.refresh(obj)
@@ -27,35 +29,11 @@ class BaseService(Generic[ModelType]):
   async def update(self, obj: ModelType, update_data: dict) -> ModelType:
     for key, value in update_data.items():
       setattr(obj, key, value)
-    
-    # try:
-    #   self.db.add(db_obj)
-    #   await self.db.commit()
-    #   await self.db.refresh(db_obj)
-    #   return True
-    # except Exception as e:
-    #   print(f"Error in update: {str(e)}")
-    #   await self.db.rollback()
-    #   return False
+  
     self.db.add(obj)
     await self.db.commit()
     await self.db.refresh(obj)
     return obj
-    
-  # async def delete(self, id: str) -> bool:
-  #   obj = await self.get(id)
-    
-  #   if not obj:
-  #     return False
-    
-  #   try:
-  #     await self.db.delete(obj)
-  #     await self.db.commit()
-  #     return True
-  #   except Exception as e:
-  #     print(f"Error in delete: {str(e)}")
-  #     await self.db.rollback()
-  #     return False
 
   async def delete(self, obj: ModelType) -> None:
     await self.db.delete(obj)

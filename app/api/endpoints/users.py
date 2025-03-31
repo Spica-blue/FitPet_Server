@@ -49,13 +49,13 @@ async def create_user(
 ):
   try:
     user_service = UserService(db=session)
-    existing_user = await user_service.get_by_id(user_data.id)
+    existing_user = await user_service.get_by_email(user_data.email)
 
     if existing_user:
       raise HTTPException(status_code=400, detail="이미 가입된 사용자입니다.")
 
     user = await user_service.create_user(user_data)
-    print(f"✅ [CREATE] 유저 '{user.id}' 생성 완료")
+    print(f"✅ [CREATE] 유저 '{user.email}' 생성 완료")
     return user
   except Exception as e:
     print("❌ create_user error:", str(e))
@@ -75,12 +75,12 @@ async def login_user(
 ):
   try:
     user_service = UserService(db=session)
-    user = await user_service.update_last_login(user_data.id)
+    user = await user_service.update_last_login(user_data.email)
 
     if not user:
       raise HTTPException(status_code=404, detail="가입되지 않은 사용자입니다.")
 
-    print(f"♻️ [LOGIN] 유저 '{user.id}' 로그인 시간 갱신 완료")
+    print(f"♻️ [LOGIN] 유저 '{user.email}' 로그인 시간 갱신 완료")
     return user
   except Exception as e:
     print("❌ login_user error:", str(e))

@@ -9,9 +9,6 @@ from app.services.base import BaseService
 class UserService(BaseService[SocialUser]):
   def __init__(self, db: AsyncSession):
     super().__init__(SocialUser, db)
-
-  async def get_by_id(self, user_id: str) -> SocialUser | None:
-    return await self.get(user_id)
   
   async def get_by_email(self, email: str) -> SocialUser | None:
     result = await self.db.execute(
@@ -23,8 +20,8 @@ class UserService(BaseService[SocialUser]):
     user_dict = user_data.dict()
     return await self.create(user_dict)
   
-  async def update_last_login(self, user_id: str) -> SocialUser | None:
-    user = await self.get(user_id)
+  async def update_last_login(self, email: str) -> SocialUser | None:
+    user = await self.get_by_email(email)
     if not user:
         return None
 
