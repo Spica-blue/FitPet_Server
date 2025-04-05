@@ -1,5 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.pool import NullPool
 from sqlmodel import SQLModel
 from asyncpg import Connection
 from uuid import uuid4
@@ -17,6 +18,7 @@ class CConnection(Connection):
 engine = create_async_engine(
   DATABASE_URL, 
   echo=True,
+  poolclass=NullPool,
   connect_args={
     "statement_cache_size": 0,
     "connection_class": CConnection

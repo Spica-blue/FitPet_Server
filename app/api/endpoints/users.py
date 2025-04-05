@@ -1,9 +1,12 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.db.db import get_session
-from app.models.userDTO import SocialUserRequest
+from app.models.userDTO import SocialUserRequest, UserInfoRequest
 from app.services.user_service import UserService
 from app.models.user import SocialUser
+from app.models.user_info import UserInfo
+from app.services.user_info_service import UserInfoService
 
 router = APIRouter()
 
@@ -114,4 +117,31 @@ async def delete_user_by_email(
 
   except Exception as e:
     print("delete_user_by_email error:", str(e))
+    raise HTTPException(status_code=500, detail="Internal Server Error")
+  
+@router.post(
+  "/user-info",
+  response_model=dict,
+  summary="사용자 정보 저장",
+  description="신체 정보, 목표, 활동량 등 유저 정보를 DB에 저장하거나 업데이트합니다.",
+  tags=["users"]
+)
+async def save_user_info(
+  data: UserInfoRequest,
+  session: AsyncSession = Depends(get_session)
+):
+  try:
+    print("📥 받은 사용자 정보:", data.model_dump())
+    
+    user_info_service = UserInfoService(db=session)
+    result = await user_info_service.create_or_update_user_info(data)
+
+    print(f"[{result.upper()}] 사용자 정보 {result} 완료: {data.email}")
+    return {"message": "사용자 정보 {result} 완료"}
+  
+  except HTTPException as e:
+    raise e
+  
+  except Exception as e:
+    print("save_user_info error:", str(e))
     raise HTTPException(status_code=500, detail="Internal Server Error")

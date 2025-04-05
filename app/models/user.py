@@ -18,10 +18,6 @@ class SocialUser(SQLModel, table=True):
   nickname: Optional[str] = None
   email: str = Field(index=True, primary_key=True)
   profile_image: Optional[str] = None
-  created_at: Optional[datetime] = Field(
-        sa_column=Column(DateTime(timezone=False), server_default=func.now())
-    )
-  last_login_at: Optional[datetime] = Field(
-      sa_column=Column(DateTime(timezone=False), onupdate=func.now())
-  )
+  created_at: Optional[datetime] = Field(sa_column=Column(DateTime(timezone=False), server_default=func.now()))
+  last_login_at: Optional[datetime] = Field(sa_column=Column(DateTime(timezone=False), server_default=func.now(), onupdate=func.now()))
 
