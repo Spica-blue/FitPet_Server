@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import Optional
+from typing import List, Optional
 from datetime import date
 
 class SocialUserRequest(BaseModel):
@@ -21,6 +21,7 @@ class UserInfoRequest(BaseModel):
   target_calories: int = Field(..., alias="targetCalories")
   diet_intensity: Optional[str] = Field(None, alias="dietIntensity")
   diet_type: Optional[str] = Field(None, alias="dietType")
+  allergy: Optional[List[str]] = Field(default_factory=list)
 
   class Config:
     allow_population_by_field_name = True 

@@ -6,6 +6,9 @@ class Settings(BaseSettings):
   # Database 설정
   DATABASE_URL: str
   
+  # GPT API Key 설정
+  OPENAI_KEY: str
+
   # 포트 설정
   PORT: int = 8883
 

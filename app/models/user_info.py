@@ -1,6 +1,7 @@
 from sqlmodel import SQLModel, Field
 from sqlalchemy import Column, DateTime, func
-from typing import Optional
+from sqlalchemy.dialects.postgresql import JSONB
+from typing import List, Optional
 from datetime import datetime, date
 
 class UserInfo(SQLModel, table=True):
@@ -17,6 +18,7 @@ class UserInfo(SQLModel, table=True):
   target_calories: int
   diet_type: str
   diet_intensity: Optional[str] = None
+  allergy: Optional[List[str]] = Field(default_factory=list, sa_column=Column(JSONB))
   created_at: Optional[datetime] = Field(sa_column=Column(DateTime(timezone=False), server_default=func.now()))
   updated_at: Optional[datetime] = Field(sa_column=Column(DateTime(timezone=False), server_default=func.now(), onupdate=func.now()))
 
