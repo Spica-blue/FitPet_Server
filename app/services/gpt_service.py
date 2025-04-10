@@ -20,8 +20,10 @@ class GPTService(BaseService[GPTRecommendation]):
           func.date(GPTRecommendation.created_at) == today
         )
       )
+      .order_by(GPTRecommendation.created_at.desc())
     )
-    existing = result.scalar_one_or_none()
+    # existing = result.scalar_one_or_none()
+    existing = result.scalars().first()
 
     if existing:
       existing.recommendations = json.loads(recommendations)

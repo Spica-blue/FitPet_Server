@@ -8,6 +8,6 @@ class GPTRecommendation(SQLModel, table=True):
 
   email: str = Field(primary_key=True, foreign_key="users.email")
   recommendations: dict = Field(sa_column=Column(JSON, nullable=False))
-  created_at: Optional[datetime] = Field(sa_column=Column(DateTime(timezone=False), server_default=func.now()))
+  created_at: Optional[datetime] = Field(sa_column=Column(DateTime(timezone=False), server_default=func.now(), primary_key=True))
   # created_at: datetime = Field(default_factory=datetime.utcnow)
 
