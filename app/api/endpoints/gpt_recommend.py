@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from openai import OpenAI
-import os
+import json
 
 from app.db.db import get_session
 from app.models.gptDTO import GPTRequest
@@ -89,7 +89,7 @@ async def generate_recommendation(
     gpt_service = GPTService(db=session)
     status = await gpt_service.create_or_update_recommendation(data.email, result)
 
-    return {"message": f"추천 결과 {status} 완료", "recommendation": result}
+    return {"message": f"추천 결과 {status} 완료", "recommendation": json.loads(result)}
 
   except Exception as e:
     print("🔥 GPT 추천 실패:", str(e))
