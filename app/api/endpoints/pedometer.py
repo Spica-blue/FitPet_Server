@@ -1,0 +1,28 @@
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.ext.asyncio import AsyncSession
+from datetime import date
+
+from app.db.db import get_session
+from app.services.pedometer_service import PedometerService
+from app.models.pedometerDTO import PedometerCreate
+
+router = APIRouter()
+
+@router.post(
+  "/record",
+  summary="만보기 기록 저장",
+  description="하루가 지나면 자동으로 하루동안의 만보기 기록이 DB에 저장됩니다.",
+  tags=["pedometer"]
+)
+async def save_pedometer_record(
+  payload: PedometerCreate,
+  session: AsyncSession = Depends(get_session)
+):
+  try:
+    service = PedometerService(session)
+    result = await service.save_daily_steps(payload)
+    return { "message" : f"걸음 수 {result} 완료", "date": date.today().isoformat()}
+  
+  except Exception as e:
+    print("만보기 기록 실패:", str(e))
+    raise HTTPException(status_code=500, detail="만보기 기록 저장 실패")
