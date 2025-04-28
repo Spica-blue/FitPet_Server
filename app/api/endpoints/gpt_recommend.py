@@ -1,10 +1,15 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select, and_, func
+from datetime import date as date_, datetime
+from typing import Optional
 from openai import OpenAI
 import json
 
 from app.db.db import get_session
+from app.models.gpt import GPTRecommendation
 from app.models.gptDTO import GPTRequest
+from app.models.gptDTO import GPTRecommendationResponse
 from app.services.gpt_service import GPTService
 from app.core.config import settings
 
@@ -94,3 +99,43 @@ async def generate_recommendation(
   except Exception as e:
     print("🔥 GPT 추천 실패:", str(e))
     raise HTTPException(status_code=500, detail="GPT 추천 생성 실패")
+
+@router.get(
+  "/recommend",
+  response_model=GPTRecommendationResponse,
+  summary="저장된 GPT 추천 결과 조회",
+  description="email과 date를 쿼리로 받아, 해당 날짜(혹은 그 이전) 가장 최신 저장된 추천을 반환합니다."
+)
+async def get_recommendation(
+  email: str = Query(..., description="조회할 사용자 이메일"),
+  date: Optional[date_] = Query(None, description="조회 기준 날짜 (YYYY-MM-DD). 미지정 시 오늘 기준)"),
+  session: AsyncSession = Depends(get_session)
+):
+  # 1) 조회 기준 날짜 결정
+  target: date_ = date or date_.today()
+
+  # 2) email, created_at <= target 조건으로 가장 최신 한 건 선택
+  stmt = (
+    select(GPTRecommendation)
+    .where(
+      and_(
+        GPTRecommendation.email == email,
+        func.date(GPTRecommendation.created_at) <= target
+      )
+    )
+    .order_by(GPTRecommendation.created_at.desc())
+    .limit(1)
+  )
+
+  result = await session.execute(stmt)
+  rec: GPTRecommendation = result.scalars().first()
+
+  if not rec:
+    raise HTTPException(status_code=404, detail="해당 날짜 기준 저장된 추천 결과가 없습니다.")
+  
+  # 3) Pydantic 응답 모델에 맞춰 반환
+  return GPTRecommendationResponse(
+    email=rec.email,
+    recommendations=rec.recommendations,
+    created_at=rec.created_at
+  )

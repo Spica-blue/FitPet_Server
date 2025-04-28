@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from app.api.endpoints import users, gpt_recommend, pedometer
+from app.api.endpoints import users, gpt_recommend, pedometer, diet
 
 router = APIRouter()
 
@@ -7,3 +7,4 @@ router = APIRouter()
 router.include_router(users.router, prefix="/users")
 router.include_router(gpt_recommend.router, prefix="/gpt")
 router.include_router(pedometer.router, prefix="/pedometer")
+router.include_router(diet.router, prefix="/diet")
