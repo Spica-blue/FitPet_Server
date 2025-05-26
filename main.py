@@ -6,16 +6,26 @@ from fastapi.exceptions import RequestValidationError
 from fastapi import status
 from contextlib import asynccontextmanager
 
+import asyncio
 from app.api.router import router
 from app.core.config import settings
-from app.db.db import init_db
+from app.db.db import init_db, engine
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
   print("🚀 앱 시작됨: DB 초기화 중...")
   await init_db()
   print("✅ DB 초기화 완료!")
+
+  async def disposer_loop():
+    while True:
+      await asyncio.sleep(60)     # 원하는 간격(초)
+      await engine.dispose()      # 열린 커넥션들 모두 닫기
+  
+  asyncio.create_task(disposer_loop())
+
   yield
+  
   print("👋 앱 종료됨")
 
 def create_app() -> FastAPI:
