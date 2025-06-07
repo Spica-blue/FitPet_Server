@@ -1,3 +1,4 @@
+from typing import List
 from sqlmodel import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from datetime import datetime
@@ -57,3 +58,13 @@ class CalendarService:
     await self.db.commit()
 
     return True
+  
+  async def get_all(self, email: str) -> List[CalendarRecord]:
+    """
+    주어진 이메일의 모든 CalendarRecord를 날짜 오름차순으로 반환합니다.
+    """
+    stmt = select(CalendarRecord).where(
+      CalendarRecord.email == email
+    ).order_by(CalendarRecord.date)
+    result = await self.db.execute(stmt)
+    return result.scalars().all()

@@ -1,3 +1,5 @@
+from typing import List
+
 from fastapi import APIRouter, Depends, HTTPException, Query, Response
 from sqlalchemy.ext.asyncio import AsyncSession
 from datetime import date
@@ -44,6 +46,22 @@ async def get_calendar(
     raise HTTPException(status_code=404, detail="기록 없음")
   
   return CalendarRead(**rec.dict())
+
+@router.get(
+  "/all",
+  response_model=List[CalendarRead],
+  summary="이메일의 모든 캘린더 기록 조회",
+  tags=["calendar"]
+)
+async def get_all_calendar(
+  email: str = Query(..., description="사용자 이메일"),
+  session: AsyncSession = Depends(get_session)
+):
+  service = CalendarService(session)
+  records = await service.get_all(email)
+
+  # 비어 있어도 빈 리스트를 반환
+  return [CalendarRead(**rec.dict()) for rec in records]
 
 @router.delete(
   "/",
