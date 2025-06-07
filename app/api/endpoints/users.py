@@ -1,14 +1,31 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.db import get_session
-from app.models.userDTO import SocialUserRequest, UserInfoRequest
+from app.models.userDTO import SocialUserRequest, UserInfoRequest, UserInfoResponse
 from app.services.user_service import UserService
 from app.models.user import SocialUser
 from app.models.user_info import UserInfo
 from app.services.user_info_service import UserInfoService
 
 router = APIRouter()
+
+@router.get(
+  "/user-info",
+  response_model=UserInfoResponse,
+  summary="사용자 신체/목표 정보 조회",
+  description="이메일로 저장된 사용자 추가정보(user_info)를 반환합니다.",
+  tags=["users"]
+)
+async def get_user_info(
+  email: str = Query(..., description="조회할 사용자 이메일"),
+  session: AsyncSession = Depends(get_session)
+):
+  service = UserInfoService(session)
+  info = await service.get_user_info(email)
+  if not info:
+      raise HTTPException(status_code=404, detail="사용자 추가정보를 찾을 수 없습니다.")
+  return UserInfoResponse.from_orm(info)
 
 @router.get(
   "/{email}",
@@ -145,3 +162,5 @@ async def save_user_info(
   except Exception as e:
     print("save_user_info error:", str(e))
     raise HTTPException(status_code=500, detail="Internal Server Error")
+  
+

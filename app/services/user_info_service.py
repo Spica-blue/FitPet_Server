@@ -3,6 +3,7 @@ from app.models.userDTO import UserInfoRequest
 from app.services.base import BaseService
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+from typing import Optional
 
 class UserInfoService(BaseService[UserInfo]):
   def __init__(self, db: AsyncSession):
@@ -29,4 +30,13 @@ class UserInfoService(BaseService[UserInfo]):
       await self.db.commit()
       await self.db.refresh(new_info)
       return "created"
+    
+  async def get_user_info(self, email: str) -> Optional[UserInfo]:
+    """
+    email에 해당하는 UserInfo 레코드를 반환합니다.
+    없으면 None.
+    """
+    stmt = select(UserInfo).where(UserInfo.email == email)
+    result = await self.db.execute(stmt)
+    return result.scalar_one_or_none()
 
