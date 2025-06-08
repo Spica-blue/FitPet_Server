@@ -9,3 +9,6 @@ class PedometerRead(BaseModel):
   email: str
   step_count: int
   date: date
+
+  class Config:
+    orm_mode = True

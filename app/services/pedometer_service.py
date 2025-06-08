@@ -2,6 +2,7 @@ from datetime import date as dt_date, timedelta
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import IntegrityError, NoResultFound
+from typing import List
 
 from app.models.pedometer import PedometerRecord
 from app.models.pedometerDTO import PedometerCreate
@@ -30,19 +31,16 @@ class PedometerService:
       await self.db.rollback()
       return "이미 저장됨"
     
-  async def get_daily_steps(self, email: str, target_date: dt_date) -> int:
-    stmt = select(PedometerRecord).where(
-      PedometerRecord.email == email,
-      PedometerRecord.date == target_date
+  async def get_steps_range(self, email: str, start_date: dt_date, end_date: dt_date) -> List[PedometerRecord]:
+    """
+    주어진 기간 동안(양 끝 포함) email의 PedometerRecord를 모두 조회합니다.
+    """
+    stmt = (
+      select(PedometerRecord)
+      .where(PedometerRecord.email == email)
+      .where(PedometerRecord.date >= start_date)
+      .where(PedometerRecord.date <= end_date)
     )
-
     result = await self.db.execute(stmt)
-    record = result.scalar_one_or_none()
-
-    if record:
-      return record.step_count
-    
-    else:
-      # 기록이 없으면 0으로 간주
-      return 0
+    return result.scalars().all()
 
