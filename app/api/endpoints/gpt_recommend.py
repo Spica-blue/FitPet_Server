@@ -104,7 +104,8 @@ async def generate_recommendation(
   "/recommend",
   response_model=GPTRecommendationResponse,
   summary="저장된 GPT 추천 결과 조회",
-  description="email과 date를 쿼리로 받아, 해당 날짜(혹은 그 이전) 가장 최신 저장된 추천을 반환합니다."
+  description="email과 date를 쿼리로 받아, 해당 날짜(혹은 그 이전) 가장 최신 저장된 추천을 반환합니다.",
+  tags=["gpt"]
 )
 async def get_recommendation(
   email: str = Query(..., description="조회할 사용자 이메일"),

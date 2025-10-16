@@ -13,6 +13,7 @@ router = APIRouter()
   "/",
   response_model=DietResponse,
   summary="식단 기록 생성 또는 업데이트",
+  tags=["diet"]
 )
 async def upsert_diet(
   data: DietRequest,
@@ -33,6 +34,7 @@ async def upsert_diet(
   "/",
   response_model=DietResponse,
   summary="특정 날짜 식단 조회",
+  tags=["diet"]
 )
 async def read_diet(
   email: str = Query(..., description="조회할 사용자 이메일"),
